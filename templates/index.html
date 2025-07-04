@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Assistant</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    input, button { padding: 0.5em; font-size: 1em; }
+    #output { margin-top: 1em; }
+    img { max-width: 500px; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>AI Assistant</h1>
+  <input id="user-input" type="text" placeholder="Ask me anything..." style="width: 60%;">
+  <button onclick="submit()">Submit</button>
+  <div id="output"></div>
+
+  <script>
+    async function submit() {
+      const prompt = document.getElementById('user-input').value;
+      const output = document.getElementById('output');
+      output.innerHTML = "⏳ Thinking...";
+
+      const res = await fetch("/query", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+      output.innerHTML = '';
+
+      if (data.image_url) {
+        output.innerHTML = `<img src="${data.image_url}">`;
+      } else if (data.translation) {
+        output.innerHTML = `<b>Translation:</b> ${data.translation}`;
+      } else if (data.summary) {
+        output.innerHTML = `<b>Summary:</b> ${data.summary}`;
+      } else if (data.response) {
+        output.innerHTML = `<b>Response:</b> ${data.response}`;
+      }
+
+      if (data.notice) {
+        output.innerHTML += `<p style="color: orange;">${data.notice}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
