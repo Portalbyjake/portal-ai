@@ -1,10 +1,15 @@
-from flask import Flask, request, jsonify, render_template
+"""Main Flask application entry point."""
+
+from flask import Flask, render_template
+from flask import request, jsonify
 from openai import OpenAI
 from langdetect import detect
 from deep_translator import GoogleTranslator
 import requests
 
+
 app = Flask(__name__)
+
 client = OpenAI()
 
 # Short-term memory store
@@ -130,13 +135,7 @@ def run_deepl(prompt, target_lang="EN"):
     result = response.json()
     return result["translations"][0]["text"]
 
-# Route: homepage
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-# Route: intelligent dispatcher
-@app.route('/query', methods=['POST'])
+# Route handlers
 def query():
     data = request.get_json()
     prompt = data.get("prompt")
@@ -172,8 +171,6 @@ def query():
 
     return jsonify(response)
 
-# Manual fallback routes
-@app.route('/generate', methods=['POST'])
 def generate_response():
     data = request.get_json()
     prompt = data.get("prompt")
@@ -183,7 +180,6 @@ def generate_response():
     output, notice = run_model("text", model, optimized_prompt, user_lang)
     return jsonify({"response": output, "notice": notice})
 
-@app.route('/generate-image', methods=['POST'])
 def generate_image():
     data = request.get_json()
     prompt = data.get("prompt")
@@ -193,7 +189,6 @@ def generate_image():
     output, notice = run_model("image", model, optimized_prompt, user_lang)
     return jsonify({"image_url": output, "notice": notice})
 
-@app.route('/translate', methods=['POST'])
 def translate_text():
     data = request.get_json()
     prompt = data.get("prompt")
@@ -203,7 +198,6 @@ def translate_text():
     output, notice = run_model("translate", model, optimized_prompt, user_lang)
     return jsonify({"translation": output, "notice": notice})
 
-@app.route('/summarize', methods=['POST'])
 def summarize_text():
     data = request.get_json()
     prompt = data.get("prompt")
@@ -212,6 +206,39 @@ def summarize_text():
     optimized_prompt = optimize_prompt("summarize", model, prompt)
     output, notice = run_model("summarize", model, optimized_prompt, user_lang)
     return jsonify({"summary": output, "notice": notice})
+
+# Main app
+# from flask import Flask, render_template
+# from routes import query, generate_response, generate_image, translate_text, summarize_text
+
+# app = Flask(__name__)
+
+# # Route: homepage
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# # Route: intelligent dispatcher
+@app.route('/query', methods=['POST'])
+def query_route():
+    return query()
+
+# # Manual fallback routes
+@app.route('/generate', methods=['POST'])
+def generate_route():
+    return generate_response()
+
+# @app.route('/generate-image', methods=['POST'])
+# def generate_image_route():
+#     return generate_image()
+
+# @app.route('/translate', methods=['POST'])
+# def translate_route():
+#     return translate_text()
+
+# @app.route('/summarize', methods=['POST'])
+# def summarize_route():
+#     return summarize_text()
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080, debug=True)
