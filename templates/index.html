@@ -1,50 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Assistant</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unified AI Assistant</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    input, button { padding: 0.5em; font-size: 1em; }
-    #output { margin-top: 1em; }
-    img { max-width: 500px; margin-top: 1em; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      margin-top: 4rem;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 700px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid #ccc;
+      resize: none;
+    }
+
+    button {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.75rem;
+      background: #0078ff;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+
+    button:hover {
+      background: #005ecb;
+    }
+
+    .output {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 0.75rem;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+      white-space: pre-wrap;
+    }
+
+    .image-output img {
+      max-width: 100%;
+      border-radius: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .loading {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .notice {
+      margin-top: 1rem;
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .advanced-toggle {
+      margin-top: 1.5rem;
+      cursor: pointer;
+      color: #0078ff;
+      text-align: right;
+      font-size: 0.9rem;
+    }
+
+    .advanced-settings {
+      display: none;
+      margin-top: 0.5rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
-  <h1>AI Assistant</h1>
-  <input id="user-input" type="text" placeholder="Ask me anything..." style="width: 60%;">
-  <button onclick="submit()">Submit</button>
-  <div id="output"></div>
+  <div class="container">
+    <h1>AI Assistant</h1>
+    <textarea id="prompt" rows="4" placeholder="Ask me anything…"></textarea>
+    <div class="advanced-toggle">⚙️ Advanced Settings</div>
+    <div class="advanced-settings" id="advanced-settings">
+      <label for="taskSelect">Manually select task type (optional):</label>
+      <select id="taskSelect">
+        <option value="">Auto (let AI decide)</option>
+        <option value="text">Text Generation</option>
+        <option value="image">Image Generation</option>
+        <option value="summarize">Summarization</option>
+        <option value="translate">Translation</option>
+      </select>
+    </div>
+    <button onclick="sendPrompt()">Generate</button>
+    <div class="loading" id="loading" style="display:none;">Loading...</div>
+    <div class="notice" id="notice" style="display:none;"></div>
+    <div class="output" id="output"></div>
+    <div class="output image-output" id="imageOutput"></div>
+  </div>
 
   <script>
-    async function submit() {
-      const prompt = document.getElementById('user-input').value;
-      const output = document.getElementById('output');
-      output.innerHTML = "⏳ Thinking...";
-
-      const res = await fetch("/query", {
-        method: "POST",
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ prompt })
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.querySelector(".advanced-toggle");
+      toggle.addEventListener("click", () => {
+        const settings = document.getElementById("advanced-settings");
+        settings.style.display = settings.style.display === "none" ? "block" : "none";
       });
 
-      const data = await res.json();
-      output.innerHTML = '';
+      window.sendPrompt = async function () {
+        const prompt = document.getElementById("prompt").value;
+        const task = document.getElementById("taskSelect").value;
+        const loading = document.getElementById("loading");
+        const output = document.getElementById("output");
+        const imageOutput = document.getElementById("imageOutput");
+        const noticeBox = document.getElementById("notice");
 
-      if (data.image_url) {
-        output.innerHTML = `<img src="${data.image_url}">`;
-      } else if (data.translation) {
-        output.innerHTML = `<b>Translation:</b> ${data.translation}`;
-      } else if (data.summary) {
-        output.innerHTML = `<b>Summary:</b> ${data.summary}`;
-      } else if (data.response) {
-        output.innerHTML = `<b>Response:</b> ${data.response}`;
-      }
+        output.textContent = "";
+        imageOutput.innerHTML = "";
+        noticeBox.style.display = "none";
+        loading.style.display = "block";
 
-      if (data.notice) {
-        output.innerHTML += `<p style="color: orange;">${data.notice}</p>`;
-      }
-    }
+        let route = "/query";
+        if (task === "text") route = "/generate";
+        else if (task === "image") route = "/generate-image";
+        else if (task === "translate") route = "/translate";
+        else if (task === "summarize") route = "/summarize";
+
+        try {
+          const response = await fetch(route, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
+          });
+
+          const data = await response.json();
+          loading.style.display = "none";
+
+          if (data.response) output.textContent = data.response;
+          if (data.translation) output.textContent = data.translation;
+          if (data.summary) output.textContent = data.summary;
+          if (data.image_url) imageOutput.innerHTML = `<img src="${data.image_url}" alt="Generated image" />`;
+
+          if (data.notice) {
+            noticeBox.textContent = data.notice;
+            noticeBox.style.display = "block";
+          }
+        } catch (error) {
+          loading.style.display = "none";
+          noticeBox.textContent = "An error occurred. Please try again.";
+          noticeBox.style.display = "block";
+        }
+      };
+    });
   </script>
 </body>
 </html>
