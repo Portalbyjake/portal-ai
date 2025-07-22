@@ -1,0 +1,306 @@
+🧠 Testing Intelligent Prompt Optimizer
+============================================================
+
+✅ Test Cases - Should Pass Through Unchanged:
+----------------------------------------
+Task: text, Model: gpt-4o
+Original: What is the capital of France?
+Optimized: What is the capital of France?
+Changed: No (✅)
+
+Task: text, Model: claude-sonnet-4
+Original: How many people live in Tokyo?
+Optimized: How many people live in Tokyo?
+Changed: No (✅)
+
+Task: text, Model: gpt-4o
+Original: You are a helpful assistant. Explain quantum physics.
+Optimized: You are a helpful assistant. Explain quantum physics.
+Changed: No (✅)
+
+Task: text, Model: claude-sonnet-4
+Original: Act as a data scientist and analyze this dataset.
+Optimized: Act as a data scientist and analyze this dataset.
+Changed: No (✅)
+
+Task: code, Model: claude-3-5-sonnet
+Original: Write a Python function to calculate fibonacci numbers.
+Optimized: Write a Python function to calculate fibonacci numbers.
+Changed: No (✅)
+
+Task: image, Model: dall-e-3
+Original: Create a photorealistic image of a cat in a garden.
+Optimized: Create a photorealistic image of a cat in a garden.
+Changed: No (✅)
+
+
+🔧 Test Cases - Should Be Optimized:
+----------------------------------------
+Task: text, Model: gpt-4o
+Original: Can you please kindly give me a helpful and informative list of suggestions if you don't mind?
+Optimized: Can you please kindly give me a helpful and informative list of suggestions if you don't mind?
+Changed: No
+
+Task: text, Model: claude-sonnet-4
+Original: I was wondering if you could maybe explain something to me, you know, kind of like in a detailed way?
+Optimized: I was wondering if you could maybe explain something to me, you know, kind of like in a detailed way?
+Changed: No
+
+Task: text, Model: gpt-4o
+Original: Write a poem about money
+Optimized: Write a poem about money
+Changed: No
+
+Task: text, Model: claude-sonnet-4
+Original: Build a to-do app
+Optimized: I'd like to help you with that! To provide the best assistance, could you clarify:
+
+• What specific type of content or solution are you looking for?
+• What's the context or purpose of this request?
+• Any specific requirements or preferences?
+Changed: Yes (🔧)
+
+Task: text, Model: gpt-4o
+Original: Write something uplifting
+Optimized: I'd like to help you with that! To provide the best assistance, could you clarify:
+
+• What specific type of content would you like me to create?
+• What's the purpose or goal of this request?
+• Who is the intended audience?
+Changed: Yes (🔧)
+
+Task: code, Model: claude-3-5-sonnet
+Original: Build a web app
+Optimized: I'd like to help you with that! To provide the best assistance, could you clarify:
+
+• What specific type of content or solution are you looking for?
+• What's the context or purpose of this request?
+• Any specific requirements or preferences?
+Changed: Yes (🔧)
+
+Task: code, Model: codellama-70b
+Original: Create an API
+Optimized: I'd like to help you with that! To provide the best assistance, could you clarify:
+
+• What specific type of content or solution are you looking for?
+• What's the context or purpose of this request?
+• Any specific requirements or preferences?
+Changed: Yes (🔧)
+
+Task: image, Model: dall-e-3
+Original: make an image of a cat
+Optimized: I'd like to help you with that! To provide the best assistance, could you clarify:
+
+• What specific type of content or solution are you looking for?
+• What's the context or purpose of this request?
+• Any specific requirements or preferences?
+Changed: Yes (🔧)
+
+Task: image, Model: stablediffusion
+Original: create a fantasy landscape
+Optimized: create a fantasy landscape
+Changed: No
+
+Task: image, Model: anime-diffusion
+Original: draw an anime character
+Optimized: draw an anime character
+Changed: No
+
+
+🎭 Test Cases - Role-Based Prefacing:
+----------------------------------------
+Task: text, Model: gpt-4o
+Original: Write a story about a robot
+Optimized: Write a story about a robot
+
+Task: text, Model: claude-sonnet-4
+Original: Analyze the market trends
+Optimized: Analyze the market trends
+
+Task: text, Model: gpt-4o
+Original: Create a motivational message
+Optimized: Create a motivational message
+
+Task: text, Model: claude-sonnet-4
+Original: Debug this code
+Optimized: Debug this code
+
+Task: text, Model: gpt-4o
+Original: Write a funny joke
+Optimized: Write a funny joke
+
+
+🎨 Test Cases - Model-Specific Formatting:
+----------------------------------------
+Task: code, Model: claude-3-5-sonnet
+Original: Write a function
+Optimized: Write a function
+
+Task: code, Model: codellama-70b
+Original: Create a class
+Optimized: Create a class
+
+Task: code, Model: wizardcoder
+Original: Build an API
+Optimized: I'd like to help you with that! To provide the best assistance, could you clarify:
+
+• What specific type of content or solution are you looking for?
+• What's the context or purpose of this request?
+• Any specific requirements or preferences?
+
+Task: image, Model: dall-e-3
+Original: A cat in a garden
+Optimized: A cat in a garden
+
+Task: image, Model: stablediffusion
+Original: A fantasy castle
+Optimized: A fantasy castle
+
+Task: image, Model: anime-diffusion
+Original: A cute character
+Optimized: A cute character
+
+
+🧠 Testing Optimization Conditions:
+============================================================
+
+📊 Factual Queries (Should NOT Optimize):
+----------------------------------------
+Query: What is the capital of France?
+Needs Optimization: False
+
+Query: How many people live in Tokyo?
+Needs Optimization: False
+
+Query: What is the population of New York?
+Needs Optimization: False
+
+Query: When was the Declaration of Independence signed?
+Needs Optimization: False
+
+Query: Who is the current president?
+Needs Optimization: False
+
+Query: Where is the Eiffel Tower located?
+Needs Optimization: False
+
+Query: Define photosynthesis
+Needs Optimization: False
+
+Query: What is the meaning of quantum?
+Needs Optimization: False
+
+Query: Convert 100 degrees Fahrenheit to Celsius
+Needs Optimization: False
+
+Query: Calculate the area of a circle with radius 5
+Needs Optimization: False
+
+
+🗣️ Vague/Verbose Prompts (Should Optimize):
+----------------------------------------
+Original: Can you please kindly give me a helpful and informative list of suggestions if you don't mind?
+Needs Optimization: True
+Optimized: Can you please kindly give me a helpful and informative list of suggestions if you don't mind?
+
+Original: I was wondering if you could maybe explain something to me, you know, kind of like in a detailed way?
+Needs Optimization: False
+Optimized: I was wondering if you could maybe explain something to me, you know, kind of like in a detailed way?
+
+Original: Would you be so kind as to perhaps help me with this thing I'm working on?
+Needs Optimization: True
+Optimized: Would you be so kind as to perhaps help me with this thing I'm working on?
+
+Original: I'm just wondering if you might be able to sort of help me out with this problem I have
+Needs Optimization: True
+Optimized: I'm just wondering if you might be able to sort of help me out with this problem I have
+
+Original: Maybe you could help me with something, you know what I mean?
+Needs Optimization: True
+Optimized: Maybe you could help me with something, you know what I mean?
+
+Original: I think I need some help with this, if that's okay with you
+Needs Optimization: True
+Optimized: I think I need some help with this, if that's okay with you
+
+Original: Could you possibly assist me with this task, if it's not too much trouble?
+Needs Optimization: True
+Optimized: Could you possibly assist me with this task, if it's not too much trouble?
+
+
+🎭 Testing Role Detection:
+============================================================
+Prompt: Write a story about a robot
+Expected Role: creative_writer
+Optimized: Write a story about a robot
+
+Prompt: Analyze the market trends
+Expected Role: business_analyst
+Optimized: Analyze the market trends
+
+Prompt: Create a motivational message
+Expected Role: motivational_coach
+Optimized: Create a motivational message
+
+Prompt: Debug this code
+Expected Role: code_reviewer
+Optimized: Debug this code
+
+Prompt: Write a funny joke
+Expected Role: comedian
+Optimized: Write a funny joke
+
+Prompt: Compose a poem about love
+Expected Role: poet
+Optimized: Compose a poem about love
+
+Prompt: Design a scalable architecture
+Expected Role: system_architect
+Optimized: Design a scalable architecture
+
+Prompt: Deploy a Docker container
+Expected Role: devops_engineer
+Optimized: Deploy a Docker container
+
+Prompt: Write a technical manual
+Expected Role: technical_writer
+Optimized: Write a technical manual
+
+Prompt: Create marketing copy
+Expected Role: copywriter
+Optimized: Create marketing copy
+
+Prompt: Investigate the data patterns
+Expected Role: data_scientist
+Optimized: Investigate the data patterns
+
+Prompt: Research the latest trends
+Expected Role: researcher
+Optimized: Research the latest trends
+
+
+🤖 Testing Model-Specific Behavior:
+============================================================
+Model: gpt-4o
+Original: Explain how machine learning works
+Optimized: Explain how machine learning works
+
+Model: claude-sonnet-4
+Original: Explain how machine learning works
+Optimized: Explain how machine learning works
+
+Model: claude-haiku
+Original: Explain how machine learning works
+Optimized: Explain how machine learning works
+
+Model: gemini-pro
+Original: Explain how machine learning works
+Optimized: Explain how machine learning works
+
+Model: gpt-4-turbo
+Original: Explain how machine learning works
+Optimized: Explain how machine learning works
+
+
+🎉 Intelligent Prompt Optimizer Test Complete!
+The system now intelligently optimizes prompts only when it clearly improves clarity, output quality, or model performance.

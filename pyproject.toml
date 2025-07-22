@@ -5,6 +5,8 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 requires-python = ">=3.11"
 dependencies = [
+    "anthropic>=0.57.1",
+    "classifier>=2.0",
     "deep-translator>=1.11.4",
     "flask>=3.1.1",
     "langdetect>=1.0.9",

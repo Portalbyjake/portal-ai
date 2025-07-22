@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Portal AI - Unified AI Gateway (v3.0 - FIXED)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #232946 0%, #121629 100%);
+      --card-bg: rgba(34, 40, 49, 0.85);
+      --glass-bg: rgba(34, 40, 49, 0.6);
+      --accent: #eebbc3;
+      --highlight: #b8c1ec;
+      --text-main: #f4f4f4;
+      --text-muted: #b8c1ec;
+      --border-radius: 18px;
+      --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      --success: #a8e6cf;
+      --error: #ff8a80;
+      --warning: #ffd93d;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(238, 187, 195, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--highlight);
+      text-shadow: 0 2px 16px #0008;
+    }
+    
+    .nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+    }
+    
+    .nav a:hover, .nav a.active {
+      color: var(--accent);
+      background: rgba(238, 187, 195, 0.1);
+    }
+    
+    /* Main Container */
+    .main-container {
+      display: flex;
+      flex: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2rem;
+      gap: 2rem;
+    }
+    
+    /* Chat Section */
+    .chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 800px;
+    }
+    
+    .chat-container {
+      background: var(--glass-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      height: 70vh;
+      overflow: hidden;
+    }
+    
+    .chat-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(238, 187, 195, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chat-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--highlight);
+    }
+    
+    .chat-controls {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .btn {
+      background: var(--accent);
+      color: #232946;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    
+    .btn:hover {
+      background: var(--highlight);
+      transform: translateY(-1px);
+    }
+    
+    .btn.secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--text-muted);
+    }
+    
+    .btn.secondary:hover {
+      background: var(--text-muted);
+      color: #232946;
+    }
+    
+    /* Messages */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .message {
+      display: flex;
+      gap: 1rem;
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    .message.user {
+      flex-direction: row-reverse;
+    }
+    
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .message.user .message-avatar {
+      background: var(--accent);
+      color: #232946;
+    }
+    
+    .message.assistant .message-avatar {
+      background: var(--highlight);
+      color: #232946;
+    }
+    
+    .message-content {
+      flex: 1;
+      max-width: 80%;
+    }
+    
+    .message.user .message-content {
+      text-align: right;
+    }
+    
+    .message-bubble {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px #0002;
+      word-wrap: break-word;
+      line-height: 1.5;
+    }
+    
+    .message.user .message-bubble {
+      background: var(--accent);
+      color: #232946;
+    }
+    
+    .message-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      opacity: 0.7;
+    }
+    
+    .message.user .message-meta {
+      text-align: right;
+    }
+    
+    /* Input Section */
+    .input-section {
+      padding: 1.5rem;
+      border-top: 1px solid rgba(238, 187, 195, 0.2);
+      background: var(--card-bg);
+    }
+    
+    .input-container {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    
+    .input-field {
+      flex: 1;
+      position: relative;
+    }
+    
+    .input-field textarea {
+      width: 100%;
+      min-height: 60px;
+      max-height: 120px;
+      padding: 1rem;
+      border: none;
+      border-radius: var(--border-radius);
+      background: var(--glass-bg);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    .input-field textarea:focus {
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    
+    .send-btn {
+      background: var(--accent);
+      color: #232946;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 60px;
+    }
+    
+    .send-btn:hover {
+      background: var(--highlight);
+      transform: translateY(-1px);
+    }
+    
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .sidebar-card {
+      background: var(--glass-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      padding: 1.5rem;
+    }
+    
+    .sidebar-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--highlight);
+      margin-bottom: 1rem;
+    }
+    
+    /* Model Selection */
+    .model-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .model-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .model-option:hover {
+      background: rgba(238, 187, 195, 0.1);
+    }
+    
+    .model-option.selected {
+      background: var(--accent);
+      color: #232946;
+    }
+    
+    .model-radio {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--text-muted);
+      border-radius: 50%;
+      position: relative;
+    }
+    
+    .model-option.selected .model-radio {
+      border-color: #232946;
+      background: #232946;
+    }
+    
+    .model-radio::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+    }
+    
+    .model-option.selected .model-radio::after {
+      opacity: 1;
+    }
+    
+    /* Memory Stats */
+    .memory-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(238, 187, 195, 0.2);
+    }
+    
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+    
+    .stat-label {
+      color: var(--text-muted);
+    }
+    
+    .stat-value {
+      font-weight: 600;
+      color: var(--highlight);
+    }
+    
+    /* Loading States */
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    
+    .loading-dots {
+      display: flex;
+      gap: 0.2rem;
+    }
+    
+    .loading-dots span {
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: loading 1.4s infinite ease-in-out;
+    }
+    
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes loading {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .main-container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      
+      .sidebar-card {
+        flex: 1;
+        min-width: 250px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .nav {
+        gap: 1rem;
+      }
+      
+      .main-container {
+        padding: 1rem;
+      }
+      
+      .chat-container {
+        height: 60vh;
+      }
+      
+      .sidebar {
+        flex-direction: column;
+      }
+      
+      .sidebar-card {
+        min-width: auto;
+      }
+    }
+    
+    /* Subtle animated background stars */
+    .stars {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: #fff8;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: twinkle 2s infinite alternate;
+    }
+    
+    @keyframes twinkle {
+      from { opacity: 0.7; }
+      to { opacity: 0.2; }
+    }
+    
+    /* Image display */
+    .message-image {
+      max-width: 100%;
+      border-radius: var(--border-radius);
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 16px #0004;
+    }
+    
+    /* Error states */
+    .error-message {
+      background: var(--error);
+      color: #232946;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin: 1rem 0;
+      font-weight: 500;
+    }
+    
+    /* Success states */
+    .success-message {
+      background: var(--success);
+      color: #232946;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin: 1rem 0;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div id="proxy-banner" style="background: #d4f7d4; color: #155724; padding: 8px; text-align: center; font-weight: bold;">🟢 Proxy image mode active</div>
+  <div class="stars" id="stars"></div>
+  
+  <header class="header">
+    <div class="logo">Portal AI</div>
+    <nav class="nav">
+      <a href="/" class="active">Chat</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/gallery">Gallery</a>
+      <a href="/api">API</a>
+    </nav>
+  </header>
+  
+  <main class="main-container">
+    <section class="chat-section">
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-title">AI Assistant</div>
+          <div class="chat-controls">
+            <button class="btn secondary" onclick="clearMemory()">Clear Memory</button>
+            <button class="btn secondary" onclick="exportChat()">Export</button>
+          </div>
+        </div>
+        
+        <div class="messages" id="messages">
+          <div class="message assistant">
+            <div class="message-avatar">AI</div>
+            <div class="message-content">
+              <div class="message-bubble">
+                Hello! I'm your AI assistant. I can help you with text generation, image creation, code analysis, and much more. What would you like to work on today?
+              </div>
+              <div class="message-meta">Portal AI • Just now</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="input-section">
+          <div class="input-container">
+            <div class="input-field">
+              <textarea 
+                id="userInput" 
+                placeholder="Ask me anything... (e.g., 'Write a story about space', 'Create an image of a cat', 'Explain quantum physics')"
+                rows="1"
+              ></textarea>
+            </div>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+              <span id="sendBtnText">Send</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">Model Selection</div>
+        <div class="model-selector" id="modelSelector">
+          <div class="model-option selected" data-model="auto">
+            <div class="model-radio"></div>
+            <span>Auto (Recommended)</span>
+          </div>
+          <div class="model-option" data-model="gpt-4o">
+            <div class="model-radio"></div>
+            <span>GPT-4o</span>
+          </div>
+          <div class="model-option" data-model="claude-sonnet-4">
+            <div class="model-radio"></div>
+            <span>Claude Sonnet</span>
+          </div>
+          <div class="model-option" data-model="gemini-pro">
+            <div class="model-radio"></div>
+            <span>Gemini Pro</span>
+          </div>
+          <div class="model-option" data-model="dall-e-3">
+            <div class="model-radio"></div>
+            <span>DALL-E 3</span>
+          </div>
+          <div class="model-option" data-model="stablediffusion">
+            <div class="model-radio"></div>
+            <span>Stable Diffusion</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar-card">
+        <div class="sidebar-title">Memory Stats</div>
+        <div class="memory-stats" id="memoryStats">
+          <div class="stat-item">
+            <span class="stat-label">Conversations</span>
+            <span class="stat-value" id="conversationCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Messages</span>
+            <span class="stat-value" id="messageCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Memory Size</span>
+            <span class="stat-value" id="memorySize">0 KB</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Last Active</span>
+            <span class="stat-value" id="lastActive">Never</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar-card">
+        <div class="sidebar-title">Quick Actions</div>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <button class="btn" onclick="quickAction('story')">📖 Write a Story</button>
+          <button class="btn" onclick="quickAction('image')">🎨 Generate Image</button>
+          <button class="btn" onclick="quickAction('code')">💻 Code Help</button>
+          <button class="btn" onclick="quickAction('explain')">📚 Explain Topic</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+  
+  <script>
+    // Animated stars background
+    function createStars() {
+      const stars = document.getElementById('stars');
+      for (let i = 0; i < 80; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.top = Math.random() * 100 + 'vh';
+        star.style.left = Math.random() * 100 + 'vw';
+        star.style.animationDelay = (Math.random() * 2) + 's';
+        stars.appendChild(star);
+      }
+    }
+    createStars();
+    
+    // Global variables
+    let selectedModel = 'auto';
+    let isProcessing = false;
+    
+    // Model selection
+    document.querySelectorAll('.model-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.model-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedModel = option.dataset.model;
+      });
+    });
+    
+    // Auto-resize textarea
+    const textarea = document.getElementById('userInput');
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    // Enter to send, Shift+Enter for new line
+    textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    // Send message function
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+      
+      if (!message || isProcessing) return;
+      
+      // Add user message
+      addMessage('user', message);
+      input.value = '';
+      input.style.height = 'auto';
+      
+      // Show loading
+      isProcessing = true;
+      const sendBtn = document.getElementById('sendBtn');
+      const sendBtnText = document.getElementById('sendBtnText');
+      sendBtn.disabled = true;
+      sendBtnText.textContent = 'Sending...';
+      
+      try {
+        const requestData = { 
+          input: message,
+          model: selectedModel === 'auto' ? undefined : selectedModel
+        };
+        console.log('Sending request:', requestData);
+        
+        const response = await fetch('/query?v=' + Date.now(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData)
+        });
+        
+        const data = await response.json();
+        console.log('Response received:', data);
+        
+        if (data.output) {
+          addMessage('assistant', data.output, data.model, data.task_type);
+        } else {
+          addMessage('assistant', 'Sorry, I encountered an error. Please try again.', 'error');
+        }
+        
+        // Update memory stats
+        updateMemoryStats();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        addMessage('assistant', 'Sorry, I encountered an error. Please try again.', 'error');
+      } finally {
+        isProcessing = false;
+        sendBtn.disabled = false;
+        sendBtnText.textContent = 'Send';
+      }
+    }
+    
+    // Add message to chat
+    function addMessage(role, content, model = null, taskType = null) {
+      const messagesContainer = document.getElementById('messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+      
+      const avatar = role === 'user' ? 'You' : (model || 'AI');
+      const timestamp = new Date().toLocaleTimeString();
+      
+      let messageContent = content;
+      let imageUrl = null;
+      let useProxy = false;
+      // Check if content contains an image URL
+      if (content.includes('http')) {
+        // Look for DALL-E URLs (OpenAI Azure Blob Storage)
+        const dalleUrlMatch = content.match(/https?:\/\/[\w.-]+oaidalleapiprodscus\.blob\.core\.windows\.net\/private\/[^"]+\.png(?:\?[^\s"']*)?/i);
+        if (dalleUrlMatch) {
+          imageUrl = dalleUrlMatch[0];
+          messageContent = content.replace(dalleUrlMatch[0], '').trim();
+          useProxy = true;
+        } else {
+          // Fallback to traditional image file extensions (including query parameters)
+          const urlMatch = content.match(/https?:\/\/[^"]+\.(jpg|jpeg|png|gif)(\?[^\s]*)?/i);
+          if (urlMatch) {
+            imageUrl = urlMatch[0];
+            messageContent = content.replace(urlMatch[0], '').trim();
+          }
+        }
+      }
+      let imageTag = '';
+      if (imageUrl) {
+        let src = imageUrl;
+        if (useProxy) {
+          src = `/proxy_image?url=${encodeURIComponent(imageUrl)}`;
+        }
+        imageTag = `<img src="${src}" alt="Generated image" class="message-image" onclick="openImage('${src}')">`;
+        console.log('Using proxy:', src); // Debug log
+      }
+      messageDiv.innerHTML = `
+        <div class="message-avatar">${avatar}</div>
+        <div class="message-content">
+          <div class="message-bubble">
+            ${messageContent}
+            ${imageTag}
+          </div>
+          <div class="message-meta">
+            ${model ? model : 'Portal AI'} • ${timestamp}
+            ${taskType ? ` • ${taskType}` : ''}
+          </div>
+        </div>
+      `;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // Quick actions
+    function quickAction(type) {
+      const actions = {
+        story: "Write a creative story about a magical forest",
+        image: "Create a beautiful landscape painting",
+        code: "Help me write a Python function to sort a list",
+        explain: "Explain quantum computing in simple terms"
+      };
+      
+      const input = document.getElementById('userInput');
+      input.value = actions[type];
+      input.focus();
+    }
+    
+    // Clear memory
+    async function clearMemory() {
+      try {
+        await fetch('/clear_memory', { method: 'POST' });
+        document.getElementById('messages').innerHTML = `
+          <div class="message assistant">
+            <div class="message-avatar">AI</div>
+            <div class="message-content">
+              <div class="message-bubble">
+                Memory cleared! How can I help you today?
+              </div>
+              <div class="message-meta">Portal AI • Just now</div>
+            </div>
+          </div>
+        `;
+        updateMemoryStats();
+      } catch (error) {
+        console.error('Error clearing memory:', error);
+      }
+    }
+    
+    // Export chat
+    function exportChat() {
+      const messages = document.querySelectorAll('.message');
+      let exportText = 'Portal AI Chat Export\n\n';
+      
+      messages.forEach(msg => {
+        const role = msg.classList.contains('user') ? 'You' : 'AI';
+        const content = msg.querySelector('.message-bubble').textContent;
+        exportText += `${role}: ${content}\n\n`;
+      });
+      
+      const blob = new Blob([exportText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `portal-chat-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    // Update memory stats
+    async function updateMemoryStats() {
+      try {
+        const response = await fetch('/memory_stats');
+        const stats = await response.json();
+        
+        document.getElementById('conversationCount').textContent = stats.conversations || 0;
+        document.getElementById('messageCount').textContent = stats.total_messages || 0;
+        document.getElementById('memorySize').textContent = stats.memory_size || '0 KB';
+        document.getElementById('lastActive').textContent = stats.last_active || 'Never';
+      } catch (error) {
+        console.error('Error updating memory stats:', error);
+      }
+    }
+    
+    // Open image in new tab
+    function openImage(url) {
+      window.open(url, '_blank');
+    }
+    
+    // Initialize
+    updateMemoryStats();
+  </script>
+</body>
+</html>
+
