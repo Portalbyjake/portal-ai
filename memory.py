@@ -1,5 +1,7 @@
 import json
 import os
+import signal
+import atexit
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 import re
@@ -7,9 +9,13 @@ import re
 class ConversationMemory:
     """Enhanced conversation memory with intelligent context recognition and task routing"""
     
-    def __init__(self, memory_file="memory_text.jsonl", image_memory_file="memory_image.jsonl"):
+    def __init__(self, memory_file="memory_text.jsonl", image_memory_file="memory_image.jsonl", batch_size=10, flush_interval=30):
         self.memory_file = memory_file
         self.image_memory_file = image_memory_file
+        self.batch_size = batch_size
+        self.flush_interval = flush_interval
+        self.write_buffer = []
+        self.last_flush_time = datetime.utcnow()
         self.conversation_memory = {}
         self.conversation_topics = {}  # Track conversation topics
         self.task_history = {}  # Track task types for routing
@@ -17,6 +23,13 @@ class ConversationMemory:
         self.image_history = {}  # NEW: Per-user image history stack
         self.load_memory()
         self.load_image_memory()  # NEW: Load image memory with error handling
+        
+        atexit.register(self._cleanup)
+        try:
+            signal.signal(signal.SIGTERM, self._signal_handler)
+            signal.signal(signal.SIGINT, self._signal_handler)
+        except ValueError:
+            pass
     
     def load_memory(self):
         """Load existing memory from files with robust error handling"""
@@ -118,10 +131,11 @@ class ConversationMemory:
         # Update multimodal context
         self._update_multimodal_context(user_id, entry)
         
-        # Save to file with error handling
+        # Save to file with batched writing for better performance
         try:
-            with open(self.memory_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(entry, ensure_ascii=False) + '\n')
+            self._add_to_buffer(entry)
+            if self._should_flush():
+                self._flush_buffer()
         except Exception as e:
             print(f"Error saving memory: {e}")
     
@@ -897,6 +911,54 @@ class ConversationMemory:
                 print(f"Backed up corrupted image memory file to {backup_name}")
         except Exception as e:
             print(f"Error backing up corrupted image memory file: {e}")
+    
+    def _add_to_buffer(self, entry: Dict):
+        """Add entry to write buffer for batched writing"""
+        self.write_buffer.append(entry)
+    
+    def _should_flush(self) -> bool:
+        """Determine if buffer should be flushed based on size or time"""
+        if len(self.write_buffer) >= self.batch_size:
+            return True
+        
+        time_since_flush = (datetime.utcnow() - self.last_flush_time).total_seconds()
+        if time_since_flush >= self.flush_interval:
+            return True
+        
+        return False
+    
+    def _flush_buffer(self):
+        """Write all buffered entries to file"""
+        if not self.write_buffer:
+            return
+        
+        try:
+            with open(self.memory_file, 'a', encoding='utf-8') as f:
+                for entry in self.write_buffer:
+                    f.write(json.dumps(entry, ensure_ascii=False) + '\n')
+            
+            self.write_buffer.clear()
+            self.last_flush_time = datetime.utcnow()
+            
+        except Exception as e:
+            print(f"Error flushing memory buffer: {e}")
+    
+    def _cleanup(self):
+        """Cleanup method to flush any remaining buffered data"""
+        try:
+            self._flush_buffer()
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
+    
+    def _signal_handler(self, signum, frame):
+        """Handle shutdown signals gracefully"""
+        print(f"Received signal {signum}, flushing memory buffer...")
+        self._cleanup()
+        exit(0)
+    
+    def force_flush(self):
+        """Force flush the buffer immediately - useful for critical operations"""
+        self._flush_buffer()
 
 # Create global instance
 conversation_memory = ConversationMemory()

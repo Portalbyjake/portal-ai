@@ -375,10 +375,14 @@ def register_routes(app):
         if not url or not allowed_pattern.match(url):
             return Response('Invalid or disallowed image URL', status=400)
         try:
-            r = requests.get(url, stream=True, timeout=10)
+            r = requests.get(url, stream=True, timeout=(5, 10))
             r.raise_for_status()
             return Response(r.content, mimetype='image/png')
-        except Exception as e:
+        except requests.exceptions.Timeout:
+            return Response('Image request timed out', status=504)
+        except requests.exceptions.RequestException as e:
             return Response(f'Failed to fetch image: {e}', status=502)
+        except Exception as e:
+            return Response(f'Unexpected error: {e}', status=500)
 
    
