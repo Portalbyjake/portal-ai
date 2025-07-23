@@ -230,3 +230,9 @@ pytest
 Portal is continuously evolving — designed to be *as intuitive, intelligent, and dynamic as the future of AI itself.*
 
 
+---
+
+© 2025 Portal AI by Jacob Baldwin. All rights reserved.  
+This codebase and its associated ideas, workflows, and architecture are proprietary intellectual property.  
+Unauthorized use, reproduction, modification, or distribution is strictly prohibited.
+
