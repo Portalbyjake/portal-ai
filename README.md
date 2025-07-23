@@ -1,33 +1,163 @@
 # Portal AI - Unified AI Gateway
 
-A sophisticated AI orchestration platform that intelligently routes tasks to the best specialized models.
+Portal AI is a world-class AI orchestration platform that intelligently interprets user intent, selects the best model across 15+ providers, optimizes the prompt for that model, and returns 
+high-quality results — all through a unified interface.
 
-## 🚀 Features
+---
 
-- **Intelligent Task Classification** with confidence scoring
-- **Dynamic Model Selection** across 15+ AI providers
-- **Smart Memory Management** with token optimization
-- **Modern Chat Interface** with dark mode support
-- **Comprehensive Analytics** and performance tracking
-- **Audio Processing** (speech-to-text, text-to-speech)
-- **Multimodal Capabilities** (image analysis, OCR)
-- **Specialized Image Generation** (anime, 3D, artistic styles)
+## 💡 Vision
+
+Our mission is to make AI radically more accessible, powerful, and personalized. Portal acts as your AI assistant *for using AI assistants* — routing tasks to the best models, optimizing 
+inputs, and learning over time to deliver smarter, more intuitive results.
+
+---
+
+## 🚀 Core Features
+
+- **🔍 Intent Detection**  
+  Advanced classifier determines task type (text, image, translation, etc.) with confidence scoring.
+
+- **🧠 Prompt Optimization**  
+  Rewrites user inputs to match the strengths and formatting expectations of the selected model.
+
+- **🎯 Dynamic Model Selection**  
+  Smart routing across GPT-4o, Claude, Gemini, DeepL, DALL·E, Stable Diffusion, and more.
+
+- **🗃️ Memory System**  
+  Stores past inputs/outputs for context-aware follow-ups across modalities (text, image, audio).
+
+- **🖼️ Image Generation & Understanding**  
+  Supports fantasy, anime, logos, architectural renderings, OCR, and more.
+
+- **🗣️ Audio Capabilities**  
+  Speech-to-text and text-to-speech support via Whisper, ElevenLabs, and others.
+
+- **📊 Analytics**  
+  Tracks usage, token costs, model performance, and error rates for iterative improvement.
+
+- **💻 Clean Interface**  
+  Modern frontend with real-time feedback, transparent model display, and dark mode support.
+
+- **🧠 Self-Improving Logic**  
+  System designed to learn from usage patterns and continuously refine performance.
+
+---
+
+## 🔮 Roadmap: World-Class Upgrades
+
+- [x] Contextual memory chaining across sessions  
+- [ ] API billing and usage tier support  
+- [ ] Developer-facing API gateway for third-party apps  
+- [ ] Auto-suggestion of best model based on past performance  
+- [ ] Reinforcement learning loop based on user feedback  
+- [ ] Real-time data plugin support (search, stock tickers, etc.)  
+- [ ] Secure video generation via leading diffusion models  
+- [ ] Autonomous agents with long-term memory and planning  
+- [ ] Web automation & agentic task execution (via headless browser agents)  
+- [ ] Personalized behavior based on individual usage history  
+
+---
+
+## 🧪 Next-Gen Feature Enhancements
+
+- **🔄 Self-Healing Model Routing**  
+  Detect and reroute failed/slow calls in real time using fallback logic and cached outputs.
+
+- **🔍 Semantic Task Rewriting Engine**  
+  Reformulates vague/ambiguous prompts based on history and intent.
+
+- **🧠 Multimodal Memory Embeddings**  
+  Store/retrieve across text, image, voice, and video — with continuity across modalities.
+
+- **🧩 Composable Model Pipeline Support**  
+  Chain models dynamically (e.g., caption → image gen → summarization).
+
+- **🛡 Granular Permission Layers for Sensitive Tasks**  
+  Restrict model/task/data access by role (great for enterprise/dev tiers).
+
+- **🌍 Language- and Culture-Aware Behavior Switching**  
+  Dynamically adjust tone/content based on user’s language and region.
+
+- **💡 Task Planning & Decomposition Engine**  
+  Decomposes complex tasks into subtasks and executes them in parallel/sequence.
+
+- **📊 Outcome-Based Model Scoring Dashboard**  
+  Internal benchmarks per task/domain/cohort with feedback integration.
+
+- **🤝 Cross-Agent Collaboration Protocols**  
+  Autonomous agents can delegate and collaborate in shared spaces.
+
+- **🗣️ Voice & Emotion Interface Layer**  
+  Accept/generate output based on tone, urgency, or emotional cues.
+
+- **🔐 Zero-Knowledge Prompt Execution (ZKPE)**  
+  Execute on private/encrypted data without exposing it to the models.
+
+- **🧪 Autonomous Prompt A/B Testing**  
+  Routinely tests variations to maximize prompt performance over time.
+
+- **📘 Model Behavior Notebooking**  
+  Logs nuanced model quirks and adapts future prompt strategies.
+
+- **🧬 Continual Learning Loop**  
+  Learns from votes, follow-ups, and user corrections.
+
+- **🧰 Plugin Ecosystem & SDKs**  
+  Let devs extend Portal via SDK and pluggable modules.
+
+- **🌐 Open API Hub Integration**  
+  Allow use of Perplexity, Mistral, Groq, etc. in real time.
+
+- **🔁 Version Control for Prompt Templates**  
+  Track prompt changes per model/task with rollback support.
+
+- **🧯 Model Bias & Safety Filter Layer**  
+  Intercept noncompliant or biased model outputs before display.
+
+- **📜 Transparent Prompt + Model Audit Logs**  
+  Full traceability of every request (prompt, model, response).
+
+- **🌑 Shadow Execution Mode (Stealth Eval)**  
+  Background eval of alternate models to improve robustness.
+
+- **🧭 Conversational Goal-Mapping UI**  
+  Break down multi-step goals in a transparent visual format.
+
+- **🎥 Live-Generated Instructional Output**  
+  AI can create how-to GIFs/videos using synthesis models.
+
+- **🖇️ Prompt Copilot**  
+  A helper that iteratively improves the user’s input before model call.
+
+---
+
+## 🧩 Supported Models
+
+| Category       | Providers |
+|----------------|-----------|
+| Text           | OpenAI GPT-4o, Claude Sonnet, Gemini 1.5 |
+| Image          | DALL·E 3, Stable Diffusion, Anime Diffusion |
+| Translation    | DeepL, Google Translate |
+| Summarization  | OpenAI, Claude |
+| Audio (TTS/STT)| Whisper, ElevenLabs |
+
+---
 
 ## 🔑 Required API Keys
 
-### Core Models (Required)
+### Core (Required)
 ```bash
 # OpenAI
 OPENAI_API_KEY=sk-...
 
 # Anthropic (Claude)
-ANTHROPIC_API_KEY=sk-ant-api03-...
+ANTHROPIC_API_KEY=sk-ant-...
 
-# Stability AI (Stable Diffusion)
+# Stability AI
 STABLE_DIFFUSION_API_KEY=sk-...
 ```
 
-### Enhanced Models (Optional)
+### Enhanced (Optional)
 ```bash
 # Google (Gemini)
 GOOGLE_API_KEY=...
@@ -42,176 +172,61 @@ ELEVENLABS_API_KEY=...
 HUGGINGFACE_API_KEY=hf_...
 ```
 
-### Environment Setup
-Create a `.env` file in your project root:
+---
+
+## 📦 Setup
 
 ```bash
-# Core APIs (Required)
-OPENAI_API_KEY=your_openai_key_here
-ANTHROPIC_API_KEY=your_anthropic_key_here
-STABLE_DIFFUSION_API_KEY=your_stability_key_here
-
-# Enhanced APIs (Optional - system will use fallbacks if not provided)
-GOOGLE_API_KEY=your_google_key_here
-DEEPL_API_KEY=your_deepl_key_here
-ELEVENLABS_API_KEY=your_elevenlabs_key_here
-HUGGINGFACE_API_KEY=your_huggingface_key_here
-```
-
-## 📊 Model Capabilities
-
-| **Task Type** | **Primary Models** | **Fallback** | **API Required** |
-|---------------|-------------------|--------------|------------------|
-| **Text Generation** | GPT-4o, Claude Sonnet, Gemini Pro | GPT-4 Turbo | OpenAI, Anthropic, Google |
-| **Image Generation** | DALL-E 3, Stable Diffusion | - | OpenAI, Stability AI |
-| **Translation** | DeepL | Google Translate | DeepL |
-| **Audio STT** | Whisper | - | OpenAI |
-| **Audio TTS** | ElevenLabs | - | ElevenLabs |
-| **Multimodal** | Gemini Pro | GPT-4o | Google, OpenAI |
-
-## 🛠️ Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd Portal
-```
-
-2. **Install dependencies**
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-3. **Set up environment variables**
-```bash
-cp .env.example .env
-# Edit .env with your API keys
-```
-
-4. **Run the application**
-```bash
+# Run app
 python main.py
 ```
 
-## 🎯 Usage Examples
+---
 
-### Text Generation
-- "Write a creative story about space exploration" → GPT-4o
-- "Explain quantum physics in simple terms" → Claude Sonnet
-- "Quick response to a simple question" → Claude Haiku
+## 🧠 Architecture Overview
 
-### Image Generation
-- "Create a logo for my coffee shop" → DALL-E 3
-- "Generate an anime character" → Anime Diffusion
-- "3D architectural render of a modern house" → Midjourney
-
-### Audio Processing
-- "Transcribe this meeting recording" → Whisper
-- "Convert this text to speech" → ElevenLabs
-
-### Multimodal
-- "What do you see in this image?" → Gemini Pro
-- "Extract text from this document" → GPT-4o
-
-## 🔧 Configuration
-
-### Model Selection Logic
-The system automatically selects the best model based on:
-- **Task type** (text, image, audio, multimodal)
-- **Content characteristics** (style, complexity, language)
-- **Cost optimization** (uses cheaper models when appropriate)
-- **Speed requirements** (fast models for simple tasks)
-
-### Memory Management
-- **Smart inclusion**: Only includes conversation history when needed
-- **Token optimization**: Limits to last 10 exchanges
-- **Auto-summarization**: Summarizes old conversations when memory gets large
-
-## 📈 Analytics
-
-The system tracks comprehensive metrics:
-- **Model usage statistics**
-- **Success rates** and error analysis
-- **Processing times** and performance
-- **Task distribution** and user patterns
-- **Cost optimization** insights
-
-Access analytics at: `GET /analytics`
-
-## 🚀 Advanced Features
-
-### Custom Model Integration
-Add new models to `MODEL_REGISTRY` in `models.py`:
-
-```python
-"custom-model": {
-    "provider": "custom",
-    "strengths": ["specific task"],
-    "cost": "low",
-    "speed": "fast"
-}
-```
-
-### Task Type Extension
-Add new task types in `classifier/intent_classifier.py`:
-
-```python
-scores["new_task"] = 0.0
-# Add detection patterns
-new_task_patterns = [
-    (r"\bpattern\b", 0.9),
-]
-```
-
-## 🔒 Security Notes
-
-- **API keys** are stored in environment variables
-- **No hardcoded credentials** in the codebase
-- **Secure logging** without sensitive data exposure
-- **Rate limiting** and error handling for all APIs
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Missing API Key Error**
-   - Ensure all required API keys are set in `.env`
-   - Check key format and validity
-
-2. **Model Not Available**
-   - System will automatically fallback to available models
-   - Check API quotas and limits
-
-3. **High Token Usage**
-   - Memory management should prevent this
-   - Check conversation length and summarization
-
-### Debug Mode
-Enable detailed logging:
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📞 Support
-
-For issues and questions:
-- Check the troubleshooting section
-- Review analytics for system performance
-- Monitor API usage and costs
+- `/main.py`: Entry point with smart routing
+- `/models.py`: Handles model selection and API calls
+- `/prompt_optimizer.py`: Rewrites prompts per model formatting
+- `/classifier/`: Task and intent classifiers
+- `/memory.py`: Stores and retrieves past inputs/outputs
+- `/templates/`: Frontend HTML templates
+- `/routes.py`: Flask endpoints for each task
 
 ---
 
-**Portal AI** - Your intelligent gateway to the best AI models! 🚀 
+## 🧪 Testing
+
+```bash
+# Run all test cases
+pytest
+```
+
+---
+
+## 🔒 Security Notes
+
+- API keys stored in environment variables (never hardcoded)
+- Secure logging without exposing user data
+- Rate limiting and failover logic for all model endpoints
+
+---
+
+## 🐛 Troubleshooting
+
+### Missing API Key Error
+- Ensure all `.env` keys are properly set
+- Check for typos or invalid formats
+
+### Model Timeout or Fallback
+- If primary model fails, fallback will be triggered
+- Check logs for model failure details
+
+---
+
+Portal is continuously evolving — designed to be *as intuitive, intelligent, and dynamic as the future of AI itself.*
+
+
