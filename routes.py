@@ -14,7 +14,32 @@ from utils import detect_language
 from classifier.intent_classifier import classify_task
 
 from memory import memory_manager
+
+from self_healing_router import SelfHealingRouter
+from semantic_rewriter import SemanticTaskRewriter
+from multimodal_embeddings import MultimodalMemoryEmbeddings
+from pipeline_manager import ModelPipelineManager
+from permission_manager import PermissionManager, PermissionTier
+from culture_adapter import CultureAwareAdapter
+from task_decomposer import TaskDecomposer
+from outcome_scorer import OutcomeBasedScorer
+from agent_collaboration import CrossAgentCollaborator
+from emotion_processor import VoiceEmotionProcessor
+from zkpe_processor import ZKPEProcessor
+from memory import memory_manager
 client = OpenAI()
+
+self_healing_router = SelfHealingRouter()
+semantic_rewriter = SemanticTaskRewriter()
+multimodal_embeddings = MultimodalMemoryEmbeddings()
+pipeline_manager = ModelPipelineManager()
+permission_manager = PermissionManager()
+culture_adapter = CultureAwareAdapter()
+task_decomposer = TaskDecomposer()
+outcome_scorer = OutcomeBasedScorer()
+agent_collaborator = CrossAgentCollaborator()
+emotion_processor = VoiceEmotionProcessor()
+zkpe_processor = ZKPEProcessor()
 
 def classify_task_with_context(user_input: str, memory: list) -> tuple[str, float]:
     """
@@ -159,37 +184,98 @@ def register_routes(app):
                     "reasoning": reasoning
                 })
 
-            # Language detection (for translation)
-            lang = detect_language(user_input)
-
-            # Store user input in memory
-            memory_manager.save_memory(user_id, "user", user_input, task_type)
-
-            model = select_best_model(task_type, user_input, lang, confidence)
-            print(f"DEBUG: Model selected: {model}")  # Direct print for debugging
-            logging.info(f"[{user_id}] Model selected: {model}")
-            logging.info(f"[{user_id}] DEBUG: Called select_best_model with task_type={task_type}, user_input={user_input[:50]}...")
-
-            # Use enhanced model-specific prompt optimization
-            prompt = user_input  # No model-specific optimization function available
-            logging.info(f"[{user_id}] Optimized prompt: {prompt}")
-
-            # Use enhanced model execution with fallbacks
-            result = run_model(task_type, model, prompt, user_id)
-            output = result[0] if isinstance(result, tuple) else result
+            
+            user_tier = permission_manager.get_user_tier(user_id)
+            logging.info(f"[{user_id}] User tier: {user_tier.value}")
+            
+            emotion_analysis = emotion_processor.analyze_emotion_and_tone(user_input)
+            logging.info(f"[{user_id}] Emotion analysis: {emotion_analysis['emotions']}, urgency: {emotion_analysis['urgency']}")
+            
+            anonymized_prompt, privacy_metadata = zkpe_processor.process_with_privacy(user_input, user_id)
+            if privacy_metadata['privacy_applied']:
+                logging.info(f"[{user_id}] Applied ZKPE protection: {privacy_metadata['token_count']} sensitive tokens")
+                prompt_to_process = anonymized_prompt
+            else:
+                prompt_to_process = user_input
+            
+            rewritten_prompt, was_rewritten = semantic_rewriter.rewrite_if_needed(prompt_to_process, user_id, task_type)
+            if was_rewritten:
+                logging.info(f"[{user_id}] Prompt rewritten for clarity")
+                prompt_to_process = rewritten_prompt
+            
+            subtasks, was_decomposed = task_decomposer.decompose_if_needed(prompt_to_process, user_id)
+            if was_decomposed:
+                logging.info(f"[{user_id}] Task decomposed into {len(subtasks)} subtasks")
+            
+            collaboration_result = agent_collaborator.coordinate_multi_agent_task(prompt_to_process, user_id)
+            if collaboration_result.get('multi_agent'):
+                logging.info(f"[{user_id}] Multi-agent collaboration initiated")
+                output = collaboration_result['final']
+                model = "multi-agent-collaboration"
+            else:
+                pipeline_name = pipeline_manager.detect_pipeline_need(prompt_to_process, task_type)
+                if pipeline_name:
+                    logging.info(f"[{user_id}] Pipeline detected: {pipeline_name}")
+                    pipeline_results = pipeline_manager.execute_pipeline(pipeline_name, prompt_to_process, user_id)
+                    output = pipeline_results.get('summary', list(pipeline_results.values())[-1])
+                    model = f"pipeline-{pipeline_name}"
+                else:
+                    lang = detect_language(prompt_to_process)
+                    culturally_adapted_prompt = culture_adapter.adapt_prompt(prompt_to_process, user_id, lang)
+                    
+                    model = select_best_model(task_type, culturally_adapted_prompt, lang, confidence)
+                    
+                    permission_granted, permission_msg = permission_manager.check_permission(user_id, model, task_type)
+                    if not permission_granted:
+                        logging.warning(f"[{user_id}] Permission denied: {permission_msg}")
+                        return jsonify({"error": "Access denied", "details": permission_msg}), 403
+                    
+                    logging.info(f"[{user_id}] Model selected: {model} (permission granted)")
+                    
+                    # 10. SELF-HEALING MODEL EXECUTION - Enhanced routing with fallbacks
+                    try:
+                        output = self_healing_router.route_with_healing(model, task_type, culturally_adapted_prompt, user_id)
+                        execution_success = True
+                    except Exception as e:
+                        logging.error(f"[{user_id}] Self-healing router failed: {e}")
+                        result = run_model(task_type, model, culturally_adapted_prompt, user_id)
+                        output = result[0] if isinstance(result, tuple) else result
+                        execution_success = False
+            
+            if privacy_metadata['privacy_applied']:
+                output = zkpe_processor.restore_sensitive_data(output, privacy_metadata.get('token_map', {}), 'redacted')
+            
+            output = emotion_processor.adapt_response_to_emotion(output, emotion_analysis)
             
             # Ensure output is not empty or None
             if not output or output.strip() == "":
                 output = "I'm sorry, I couldn't generate a response. Please try asking your question again."
-                logging.warning(f"[{user_id}] Empty output from model, using fallback message")
+                logging.warning(f"[{user_id}] Empty output from enhanced pipeline, using fallback message")
+                execution_success = False
             
-            logging.info(f"[{user_id}] Output: {str(output)[:120]}...")
+            logging.info(f"[{user_id}] Enhanced pipeline output: {str(output)[:120]}...")
 
-            # Store assistant response in memory
+            multimodal_embeddings.store_with_embedding(user_id, user_input, 'text', {'task_type': task_type})
+            multimodal_embeddings.store_with_embedding(user_id, output, 'text', {'model': model, 'task_type': task_type})
+            
+            memory_manager.save_memory(user_id, "user", user_input, task_type)
             memory_manager.save_memory(user_id, "assistant", output, task_type, model)
 
             # Calculate processing time
             processing_time = (datetime.utcnow() - start_time).total_seconds()
+            
+            outcome_score = outcome_scorer.score_model_outcome(
+                model=model,
+                task_type=task_type,
+                user_feedback=5,  # Default positive feedback, can be updated via separate endpoint
+                completion_success=execution_success if 'execution_success' in locals() else True,
+                response_time=processing_time,
+                prompt_length=len(user_input),
+                response_length=len(output)
+            )
+            logging.info(f"[{user_id}] Outcome score: {outcome_score:.3f}")
+            
+            permission_manager.track_usage(user_id, model, task_type, execution_success if 'execution_success' in locals() else True)
             
             # Enhanced analytics and metrics tracking
             log_analytics(user_id, user_input, task_type, confidence, model, output, processing_time)
@@ -203,7 +289,7 @@ def register_routes(app):
                 prompt=user_input,
                 response=output,
                 response_time=processing_time,
-                success=True,
+                success=execution_success if 'execution_success' in locals() else True,
                 confidence_score=confidence
             )
 
@@ -213,7 +299,18 @@ def register_routes(app):
                 "task_type": task_type,
                 "confidence": confidence,
                 "processing_time": processing_time,
-                "reasoning": reasoning
+                "reasoning": reasoning,
+                "world_class_features": {
+                    "user_tier": user_tier.value,
+                    "emotion_analysis": emotion_analysis,
+                    "privacy_applied": privacy_metadata.get('privacy_applied', False),
+                    "prompt_rewritten": was_rewritten,
+                    "task_decomposed": was_decomposed,
+                    "multi_agent": collaboration_result.get('multi_agent', False),
+                    "pipeline_used": pipeline_name if 'pipeline_name' in locals() and pipeline_name else None,
+                    "outcome_score": outcome_score,
+                    "cultural_adaptation": lang != 'en'
+                }
             })
 
         except Exception as e:
@@ -380,5 +477,172 @@ def register_routes(app):
             return Response(r.content, mimetype='image/png')
         except Exception as e:
             return Response(f'Failed to fetch image: {e}', status=502)
+
+    
+    @app.route('/user_tier', methods=['GET', 'POST'])
+    def manage_user_tier():
+        """Get or set user permission tier"""
+        try:
+            user_id = request.args.get("user_id") or request.json.get("user_id", "default")
+            
+            if request.method == 'GET':
+                tier = permission_manager.get_user_tier(user_id)
+                usage = permission_manager.get_user_usage(user_id)
+                return jsonify({
+                    "user_id": user_id,
+                    "tier": tier.value,
+                    "usage": usage,
+                    "tier_info": permission_manager.get_tier_info(tier)
+                })
+            
+            elif request.method == 'POST':
+                data = request.get_json()
+                new_tier = data.get("tier")
+                if new_tier not in [t.value for t in PermissionTier]:
+                    return jsonify({"error": "Invalid tier"}), 400
+                
+                permission_manager.set_user_tier(user_id, PermissionTier(new_tier))
+                return jsonify({"success": True, "message": f"User tier updated to {new_tier}"})
+                
+        except Exception as e:
+            return jsonify({"error": "Failed to manage user tier", "details": str(e)}), 500
+    
+    @app.route('/semantic_search', methods=['POST'])
+    def semantic_search():
+        """Search memory using semantic embeddings"""
+        try:
+            data = request.get_json()
+            user_id = data.get("user_id", "default")
+            query = data.get("query", "")
+            content_type = data.get("content_type", "text")
+            k = data.get("k", 5)
+            
+            if not query:
+                return jsonify({"error": "Query is required"}), 400
+            
+            results = multimodal_embeddings.semantic_search(query, user_id, content_type, k)
+            return jsonify({
+                "query": query,
+                "results": results,
+                "count": len(results)
+            })
+            
+        except Exception as e:
+            return jsonify({"error": "Semantic search failed", "details": str(e)}), 500
+    
+    @app.route('/outcome_feedback', methods=['POST'])
+    def submit_outcome_feedback():
+        """Submit user feedback for outcome scoring"""
+        try:
+            data = request.get_json()
+            user_id = data.get("user_id", "default")
+            model = data.get("model", "")
+            task_type = data.get("task_type", "")
+            feedback_score = data.get("feedback", 3)  # 1-5 scale
+            
+            if not all([model, task_type]):
+                return jsonify({"error": "Model and task_type are required"}), 400
+            
+            outcome_score = outcome_scorer.score_model_outcome(
+                model=model,
+                task_type=task_type,
+                user_feedback=feedback_score,
+                completion_success=True,
+                response_time=0,  # Not relevant for feedback
+                prompt_length=0,
+                response_length=0
+            )
+            
+            return jsonify({
+                "success": True,
+                "message": "Feedback recorded",
+                "outcome_score": outcome_score
+            })
+            
+        except Exception as e:
+            return jsonify({"error": "Failed to record feedback", "details": str(e)}), 500
+    
+    @app.route('/system_health', methods=['GET'])
+    def get_system_health():
+        """Get comprehensive system health and performance metrics"""
+        try:
+            health_stats = {
+                "self_healing_router": self_healing_router.get_health_stats(),
+                "permission_stats": permission_manager.get_permission_stats(),
+                "outcome_stats": outcome_scorer.get_outcome_stats(),
+                "collaboration_stats": agent_collaborator.get_collaboration_stats(),
+                "embedding_stats": multimodal_embeddings.get_embedding_stats(),
+                "privacy_stats": zkpe_processor.get_privacy_stats()
+            }
+            
+            return jsonify({
+                "status": "healthy",
+                "timestamp": datetime.utcnow().isoformat(),
+                "features": health_stats
+            })
+            
+        except Exception as e:
+            return jsonify({
+                "status": "unhealthy",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }), 500
+    
+    @app.route('/feature_capabilities', methods=['GET'])
+    def get_feature_capabilities():
+        """Get information about all world-class AI orchestration capabilities"""
+        try:
+            return jsonify({
+                "world_class_features": {
+                    "self_healing_router": {
+                        "description": "Automatic retry and fallback with circuit breakers",
+                        "capabilities": ["caching", "health_monitoring", "circuit_breaker"]
+                    },
+                    "semantic_rewriter": {
+                        "description": "Enhance ambiguous prompts using context",
+                        "capabilities": ["ambiguity_detection", "context_rewriting"]
+                    },
+                    "multimodal_embeddings": {
+                        "description": "Vector-based memory storage and semantic search",
+                        "capabilities": ["vector_storage", "semantic_search", "multimodal_support"]
+                    },
+                    "pipeline_manager": {
+                        "description": "Composable model pipelines for complex tasks",
+                        "capabilities": ["model_chaining", "complexity_detection", "pipeline_execution"]
+                    },
+                    "permission_manager": {
+                        "description": "Granular access control and usage tracking",
+                        "capabilities": ["tier_management", "usage_tracking", "access_control"]
+                    },
+                    "culture_adapter": {
+                        "description": "Culture-aware response adaptation",
+                        "capabilities": ["language_detection", "cultural_adaptation", "tone_adjustment"]
+                    },
+                    "task_decomposer": {
+                        "description": "Break complex tasks into manageable subtasks",
+                        "capabilities": ["complexity_analysis", "task_decomposition", "subtask_execution"]
+                    },
+                    "outcome_scorer": {
+                        "description": "Performance tracking and model scoring",
+                        "capabilities": ["outcome_tracking", "feedback_scoring", "performance_metrics"]
+                    },
+                    "agent_collaboration": {
+                        "description": "Multi-agent coordination for complex tasks",
+                        "capabilities": ["agent_coordination", "task_delegation", "collaborative_execution"]
+                    },
+                    "emotion_processor": {
+                        "description": "Emotion and sentiment analysis with adaptive responses",
+                        "capabilities": ["emotion_detection", "sentiment_analysis", "response_adaptation"]
+                    },
+                    "zkpe_processor": {
+                        "description": "Zero-knowledge privacy protection for sensitive data",
+                        "capabilities": ["privacy_protection", "data_anonymization", "secure_processing"]
+                    }
+                },
+                "permission_tiers": permission_manager.get_all_tiers_info()
+            })
+            
+        except Exception as e:
+            return jsonify({"error": "Failed to get capabilities", "details": str(e)}), 500
 
    
